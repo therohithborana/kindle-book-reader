@@ -1,12 +1,12 @@
 import ePub from 'epubjs';
-import { showMeaning, wordFromSelection } from './popup.js';
+import { bindWordLookup } from './popup.js';
 
 export async function openEpub(book, container, els, onProgress) {
   const b = ePub(book.data);
   const rendition = b.renderTo(container, { width: '100%', height: '100%', flow: 'paginated', spread: 'none' });
   rendition.hooks.content.register((contents) => {
     const doc = contents.document;
-    doc.addEventListener('dblclick', () => showMeaning(wordFromSelection(contents.window)));
+    bindWordLookup(doc, contents.window);
     // Allow word selection / touch double-tap
     doc.documentElement.style.webkitUserSelect = 'text';
   });

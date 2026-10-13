@@ -3,7 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "vite", "build": "vite build", "preview": "vite preview" },
-  "dependencies": { "epubjs": "^0.3.93", "pdfjs-dist": "^4.10.38" },
-  "devDependencies": { "vite": "^5.4.0", "vite-plugin-pwa": "^0.20.5" }
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:e2e": "npm run build && node tests/reader.mjs"
+  },
+  "dependencies": {
+    "epubjs": "^0.3.93",
+    "pdfjs-dist": "^4.10.38"
+  },
+  "devDependencies": {
+    "playwright": "^1.64.0",
+    "vite": "^5.4.0",
+    "vite-plugin-pwa": "^0.20.5"
+  }
 }

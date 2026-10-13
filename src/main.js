@@ -16,6 +16,7 @@ async function meta(file, data) {
       const b = ePub(data.slice(0));
       const m = await b.loaded.metadata;
       if (m.title) title = m.title + (m.creator ? ' - ' + m.creator : '');
+      await b.ready;
       b.destroy();
     } catch {}
   }
@@ -72,3 +73,12 @@ $('back').onclick = () => {
 };
 
 renderLibrary();
+
+// A controlling worker has completed its precache, including all dictionary letters.
+if ('serviceWorker' in navigator) {
+  const ready = () => { $('offlineStatus').textContent = 'Ready for offline reading and dictionary lookup.'; };
+  if (navigator.serviceWorker.controller) ready();
+  navigator.serviceWorker.addEventListener('controllerchange', ready);
+} else {
+  $('offlineStatus').textContent = 'Offline storage is not supported by this browser.';
+}

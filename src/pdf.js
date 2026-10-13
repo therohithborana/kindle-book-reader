@@ -1,7 +1,7 @@
 import * as pdfjs from 'pdfjs-dist';
 import { TextLayer } from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import { showMeaning, wordFromSelection } from './popup.js';
+import { bindWordLookup } from './popup.js';
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 
 export async function openPdf(book, container, els, onProgress) {
@@ -12,7 +12,7 @@ export async function openPdf(book, container, els, onProgress) {
   container.innerHTML = '<div class="pdfwrap"><canvas></canvas><div class="textLayer"></div></div>';
   const canvas = container.querySelector('canvas');
   const tl = container.querySelector('.textLayer');
-  tl.addEventListener('dblclick', () => showMeaning(wordFromSelection(window)));
+  const unbind = bindWordLookup(document, window);
 
   async function render() {
     const p = await pdf.getPage(page);
@@ -43,5 +43,5 @@ export async function openPdf(book, container, els, onProgress) {
   const key = (e) => { if (e.key === 'ArrowLeft') go(page - 1); if (e.key === 'ArrowRight') go(page + 1); };
   document.addEventListener('keyup', key);
   await render();
-  return () => { document.removeEventListener('keyup', key); pdf.destroy(); };
+  return () => { document.removeEventListener('keyup', key); unbind(); pdf.destroy(); };
 }

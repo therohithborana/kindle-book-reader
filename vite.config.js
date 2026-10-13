@@ -9,13 +9,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,mjs}'],
+        globPatterns: ['**/*.{js,css,html,svg,mjs,json,txt}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        runtimeCaching: [{
-          urlPattern: /^https:\/\/api\.dictionaryapi\.dev\/.*/,
-          handler: 'NetworkFirst',
-          options: { cacheName: 'dict', expiration: { maxEntries: 500 } }
-        }]
+
       },
       manifest: {
         name: 'Kindle Book Reader',
