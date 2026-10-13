@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f2937">
+<link rel="icon" href="icon.svg">
+<title>Kindle Book Reader</title>
+</head>
+<body>
+<div id="app">
+  <section id="library">
+    <header><h1>My Library</h1>
+      <label class="btn">Add book<input id="file" type="file" accept=".epub,.pdf,application/epub+zip,application/pdf" hidden multiple></label>
+    </header>
+    <p id="empty" class="muted">No books yet. Add an EPUB or PDF to start reading.</p>
+    <div id="books"></div>
+  </section>
+  <section id="reader" hidden>
+    <header>
+      <button id="back" class="btn">Library</button>
+      <span id="title"></span>
+      <span class="spacer"></span>
+      <button id="prev" class="btn">‹</button>
+      <span id="pos" class="muted"></span>
+      <button id="next" class="btn">›</button>
+      <button id="zoomOut" class="btn pdfonly">A-</button>
+      <button id="zoomIn" class="btn pdfonly">A+</button>
+    </header>
+    <div id="view"></div>
+  </section>
+  <div id="popup" hidden>
+    <button id="close" aria-label="Close">×</button>
+    <div id="popBody"></div>
+  </div>
+</div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
