@@ -1,6 +1,7 @@
 import * as pdfjs from 'pdfjs-dist';
 import { TextLayer } from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { onSettings } from './settings.js';
 import { bindWordLookup } from './popup.js';
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 
@@ -8,6 +9,7 @@ export async function openPdf(book, container, els, onProgress) {
   const pdf = await pdfjs.getDocument({ data: book.data.slice(0) }).promise;
   let page = book.location || 1;
   let scale = 1.4;
+  let first = true;
   let task;
   container.innerHTML = '<div class="pdfwrap"><canvas></canvas><div class="textLayer"></div></div>';
   const canvas = container.querySelector('canvas');
@@ -38,10 +40,14 @@ export async function openPdf(book, container, els, onProgress) {
   const go = (n) => { if (n >= 1 && n <= pdf.numPages) { page = n; render(); } };
   els.prev.onclick = () => go(page - 1);
   els.next.onclick = () => go(page + 1);
-  els.zoomIn.onclick = () => { scale = Math.min(scale + 0.2, 4); render(); };
-  els.zoomOut.onclick = () => { scale = Math.max(scale - 0.2, 0.6); render(); };
+  // Text size scales the page; dark mode inverts the page image (the text layer is invisible).
+  const stopSettings = onSettings(({ size }) => {
+    scale = 1.4 * size / 100;
+    if (first) { first = false; return; }
+    render();
+  });
   const key = (e) => { if (e.key === 'ArrowLeft') go(page - 1); if (e.key === 'ArrowRight') go(page + 1); };
   document.addEventListener('keyup', key);
   await render();
-  return () => { document.removeEventListener('keyup', key); unbind(); pdf.destroy(); };
+  return () => { stopSettings(); document.removeEventListener('keyup', key); unbind(); pdf.destroy(); };
 }

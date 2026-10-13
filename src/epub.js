@@ -1,4 +1,5 @@
 import ePub from 'epubjs';
+import { onSettings } from './settings.js';
 import { bindWordLookup } from './popup.js';
 
 export async function openEpub(book, container, els, onProgress) {
@@ -9,6 +10,13 @@ export async function openEpub(book, container, els, onProgress) {
     bindWordLookup(doc, contents.window);
     // Allow word selection / touch double-tap
     doc.documentElement.style.webkitUserSelect = 'text';
+  });
+  const stopSettings = onSettings(({ theme, size }) => {
+    const dark = theme === 'dark';
+    rendition.themes.fontSize(size + '%');
+    rendition.themes.override('color', dark ? '#e5e7eb' : '#1f2937');
+    rendition.themes.override('background', dark ? '#16191e' : '#ffffff');
+    rendition.themes.override('line-height', '1.6');
   });
   await rendition.display(book.location || undefined);
   await b.ready;
@@ -25,5 +33,5 @@ export async function openEpub(book, container, els, onProgress) {
   const key = (e) => { if (e.key === 'ArrowLeft') rendition.prev(); if (e.key === 'ArrowRight') rendition.next(); };
   document.addEventListener('keyup', key);
   rendition.on('keyup', key);
-  return () => { document.removeEventListener('keyup', key); rendition.destroy(); b.destroy(); };
+  return () => { stopSettings(); document.removeEventListener('keyup', key); rendition.destroy(); b.destroy(); };
 }

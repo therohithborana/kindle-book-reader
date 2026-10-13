@@ -1,9 +1,11 @@
 import './style.css';
 import 'pdfjs-dist/web/pdf_viewer.css';
+import { initSettings } from './settings.js';
 import { putBook, getBook, allBooks, deleteBook } from './db.js';
 
 const $ = (id) => document.getElementById(id);
-const els = { pos: $('pos'), prev: $('prev'), next: $('next'), zoomIn: $('zoomIn'), zoomOut: $('zoomOut') };
+const els = { pos: $('pos'), prev: $('prev'), next: $('next') };
+initSettings();
 let cleanup = null;
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -56,7 +58,6 @@ async function openBook(id) {
   const book = await getBook(id);
   $('library').hidden = true; $('reader').hidden = false;
   $('title').textContent = book.title;
-  document.querySelectorAll('.pdfonly').forEach((x) => (x.hidden = book.type !== 'pdf'));
   const view = $('view'); view.innerHTML = '';
   view.className = book.type;
   const save = (p) => { Object.assign(book, p); putBook(book); };

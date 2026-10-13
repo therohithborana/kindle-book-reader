@@ -11,6 +11,7 @@
 <div id="app">
   <section id="library">
     <header><h1>My Library</h1>
+      <button class="btn theme-toggle" id="themeLib" aria-label="Toggle dark mode">🌙</button>
       <label class="btn">Add book<input id="file" type="file" accept=".epub,.pdf,application/epub+zip,application/pdf" hidden multiple></label>
     </header>
     <p id="empty" class="muted">No books yet. Add an EPUB or PDF to start reading.</p>
@@ -25,8 +26,10 @@
       <button id="prev" class="btn">‹</button>
       <span id="pos" class="muted"></span>
       <button id="next" class="btn">›</button>
-      <button id="zoomOut" class="btn pdfonly">A-</button>
-      <button id="zoomIn" class="btn pdfonly">A+</button>
+      <button id="sizeDown" class="btn" aria-label="Smaller text">A-</button>
+      <span id="sizeVal" class="muted">100%</span>
+      <button id="sizeUp" class="btn" aria-label="Larger text">A+</button>
+      <button class="btn theme-toggle" id="themeReader" aria-label="Toggle dark mode">🌙</button>
     </header>
     <div id="view"></div>
   </section>
