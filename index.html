@@ -3,38 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1f2937">
+<meta name="theme-color" content="#f3ecdc">
 <link rel="icon" href="icon.svg">
 <title>Kindle Book Reader</title>
 </head>
 <body>
 <div id="app">
   <section id="library">
-    <header><h1>My Library</h1>
-      <button class="btn theme-toggle" id="themeLib" aria-label="Toggle dark mode">🌙</button>
+    <header>
+      <h1>Library</h1>
+      <button class="icon-btn theme-toggle" id="themeLib" aria-label="Toggle dark mode"></button>
       <label class="btn">Add book<input id="file" type="file" accept=".epub,.pdf,application/epub+zip,application/pdf" hidden multiple></label>
     </header>
     <p id="empty" class="muted">No books yet. Add an EPUB or PDF to start reading.</p>
-    <p id="offlineStatus" class="muted" role="status">Downloading app and dictionary for offline reading...</p>
     <div id="books"></div>
+    <p id="offlineStatus" class="muted" role="status">Downloading app and dictionary for offline reading...</p>
   </section>
   <section id="reader" hidden>
     <header>
-      <button id="back" class="btn">Library</button>
+      <button id="back" class="icon-btn" aria-label="Back to library"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span class="lbl">Library</span></button>
       <span id="title"></span>
-      <span class="spacer"></span>
-      <button id="prev" class="btn">‹</button>
-      <span id="pos" class="muted"></span>
-      <button id="next" class="btn">›</button>
-      <button id="sizeDown" class="btn" aria-label="Smaller text">A-</button>
+      <button id="sizeDown" class="icon-btn" aria-label="Smaller text"><span class="aa small">A</span></button>
       <span id="sizeVal" class="muted">100%</span>
-      <button id="sizeUp" class="btn" aria-label="Larger text">A+</button>
-      <button class="btn theme-toggle" id="themeReader" aria-label="Toggle dark mode">🌙</button>
+      <button id="sizeUp" class="icon-btn" aria-label="Larger text"><span class="aa">A</span></button>
+      <button class="icon-btn theme-toggle" id="themeReader" aria-label="Toggle dark mode"></button>
     </header>
-    <div id="view"></div>
+    <div id="stage">
+      <button id="prev" class="nav-zone left" aria-label="Previous page">‹</button>
+      <div id="view"></div>
+      <button id="next" class="nav-zone right" aria-label="Next page">›</button>
+    </div>
+    <footer id="foot"><div id="bar"><i id="barFill"></i></div><span id="pos" class="muted"></span></footer>
   </section>
   <div id="popup" hidden>
-    <button id="close" aria-label="Close">×</button>
     <div id="popBody"></div>
   </div>
 </div>

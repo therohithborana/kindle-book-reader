@@ -29,14 +29,14 @@ try{
    const f=page.frames().find(f=>f!==page.mainFrame());
    const st=await f.evaluate(()=>{const c=getComputedStyle(document.body);return {color:c.color,bg:getComputedStyle(document.documentElement).backgroundColor,fs:getComputedStyle(document.documentElement).fontSize}});
    console.log('epub dark/size',JSON.stringify(st));
-   assert.equal(st.color,'rgb(229, 231, 235)');
+   assert.equal(st.color,'rgb(217, 212, 200)');
   } else {
    assert.match(await page.locator('.pdfwrap canvas').evaluate(c=>getComputedStyle(c).filter),/invert/);
    const w=await page.locator('.pdfwrap').evaluate(e=>e.getBoundingClientRect().width);console.log('pdf width at 120%',w);
   }
   await page.screenshot({path:`/tmp/${type}-dark-large.png`});
   await page.locator('#sizeDown').click();await page.locator('#sizeDown').click();
-  await page.locator('#close').click();
+  await page.mouse.click(3,400);
   // A fresh, not-yet-looked-up letter must be available offline.
   await context.setOffline(true);
   const target=type==='epub'?page.frames().find(f=>f!==page.mainFrame()):page.mainFrame();
@@ -54,7 +54,7 @@ try{
   await page.locator('#popBody').locator('ol').waitFor();
   assert.match(await page.locator('#popBody').innerText(),/dictionary/i);
   await page.screenshot({path:`/tmp/${type}-offline-verified.png`});
-  await page.locator('#close').click();
+  await page.mouse.click(3,400);
   await page.touchscreen.tap(x,y);await page.touchscreen.tap(x,y);
   await page.locator('#popBody').locator('ol').waitFor();
   console.log(type, 'PASS double-touch lookup');
