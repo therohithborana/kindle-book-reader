@@ -1,11 +1,11 @@
 # Kindle Book Reader
 
-A personal, installable (PWA) book reader. Upload any EPUB or PDF, read it, and double-click any word to see its dictionary meaning.
+A personal, installable (PWA) book reader. Upload any EPUB or PDF, read it, and long-press (double-click on desktop) any word to see its dictionary meaning.
 
 ## Features
 - Upload EPUB and PDF files (stored locally in your browser via IndexedDB, nothing is uploaded to a server)
 - Library with reading progress; resumes where you left off
-- Double-click (or double-tap) a word to get its definition, from a bundled offline WordNet dictionary (short, modern, plain-English meanings)
+- Long-press (or double-click on desktop) a word to get its definition, from a bundled offline WordNet dictionary (short, modern, plain-English meanings)
 - Installable: "Install app" / "Add to Home Screen" in the browser; reader and dictionary work offline after the first download
 - Arrow keys or the buttons turn pages; PDF has zoom
 
@@ -23,7 +23,7 @@ Any static host works. On Vercel: import the repo, framework "Vite", build `npm 
 ## Notes
 - English dictionary: about 83,000 words, bundled in 26 letter files (about 12 MB, roughly 3.6 MB compressed). No external definition requests, API keys, or user-book uploads.
 - Open the app online once and wait for "Ready for offline reading". The service worker downloads the app, both reader engines and all dictionary files. Offline mode needs browser storage to remain available.
-- On phones: double-tap a word or long-press to select a single word. On desktop: double-click.
+- On phones: press and hold a word (long-press). On desktop: double-click. A single tap never looks a word up, so taps cleanly show or hide the controls.
 - WordNet covers everyday and literary English but not slang, brand names or most very recent terms; common endings (-s, -ed, -ing, -er) and irregular forms (went, mice) are matched to the base word. Missing words show a clear message; there is no online fallback.
 - Scanned PDFs without a text layer cannot be word-selected.
 
@@ -63,9 +63,9 @@ EPUB pagination takes priority over the publisher's spread metadata. The gutter 
 
 On phones up to 600px wide, books open in an immersive single-page view.
 Tap the middle of the page to show or hide the library, size, theme, and progress
-controls. Swipe left/right or tap either edge to turn pages. Double-tap a word
-for the offline dictionary. A single tap waits briefly so it does not interfere
-with double-tap lookup. The controls reserve their own space while visible,
+controls. Swipe left/right or tap either edge to turn pages. Press and hold a
+word for the offline dictionary. A single tap never triggers the dictionary, so
+taps act on the controls immediately. The controls reserve their own space while visible,
 rather than covering the text. PDFs keep the original printed page layout;
 use the size buttons to zoom, then scroll a zoomed page.
 

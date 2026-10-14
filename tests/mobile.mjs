@@ -40,10 +40,24 @@ try{
   await page.locator('#sizeUp').click();assert.equal(await page.locator('#sizeVal').innerText(),'110%');await pause();await page.locator('#sizeDown').click();await pause();await chrome(false);
   let pt=await wordPoint(type,type==='pdf'?'little':'rabbit');if(!pt)pt=await wordPoint(type,'rabbit');if(!pt)pt=await wordPoint(type,'door');if(!pt)pt=await wordPoint(type,'book');if(!pt)pt=await wordPoint(type,'project');
   assert(pt,`No dictionary word visible: ${type}`);
-  await context.setOffline(true);await page.touchscreen.tap(pt.x,pt.y);await page.touchscreen.tap(pt.x,pt.y);
+  await context.setOffline(true);
+  // Long-press (press and hold) the word for its meaning.
+  const lp=await context.newCDPSession(page);
+  await lp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:Math.round(pt.x),y:Math.round(pt.y)}]});
+  await page.waitForTimeout(650);
+  await lp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   await pause();console.log('lookup',type,pt,await page.locator('#popup').innerText());await page.screenshot({path:`${out}-${type}-lookup-debug.png`});await page.locator('#popup ol').first().waitFor();assert.equal(await page.locator('#reader').evaluate(e=>e.classList.contains('chrome-visible')),false);
   await page.screenshot({path:`${out}-${type}-dictionary.png`});
-  await context.setOffline(false);await page.touchscreen.tap(195,700);await pause();
+  // Dismiss by tapping the text: the card itself sits below the word, so a
+  // tap lower down would land on the card instead of dismissing it.
+  await context.setOffline(false);await page.touchscreen.tap(pt.x,pt.y);await pause();
+  // A single tap or a quick double tap on a word must not open the dictionary.
+  assert.equal(await page.locator('#popup').evaluate(e=>e.hidden),true);
+  await page.touchscreen.tap(pt.x,pt.y);await pause();
+  assert.equal(await page.locator('#popup').evaluate(e=>e.hidden),true);
+  await page.touchscreen.tap(pt.x,pt.y);await page.touchscreen.tap(pt.x,pt.y);await pause();
+  assert.equal(await page.locator('#popup').evaluate(e=>e.hidden),true);
+  console.log(type,'PASS taps do not fire dictionary');await chrome(false);
   if(type==='epub'){await page.setViewportSize({width:844,height:390});await pause();await page.setViewportSize({width:390,height:844});await pause();assert.equal(await page.locator('#stage').evaluate(e=>e.classList.contains('spread')),false);}
   const before=await progress();await page.touchscreen.tap(384,400);await pause();const after=await progress();assert.notEqual(after.location,before.location);
   await page.reload();await page.locator(type==='epub'?'#view iframe':'.textLayer span').first().waitFor();await pause();assert.equal((await progress()).location,after.location);
@@ -51,5 +65,5 @@ try{
   const cdp=await context.newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:280,y:400}]});for(let x=260;x>=80;x-=20){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:405}]});await page.waitForTimeout(15);}await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await pause();assert.notEqual((await progress()).location,after.location);
   await chrome(true);await page.locator('#back').click();
  }
- assert.deepEqual(errors,[]);console.log('PASS phone EPUB/PDF: fullscreen, controls, no overlap, size, dark/light, offline double-tap dictionary, edge turn, swipe, exact resume');
+ assert.deepEqual(errors,[]);console.log('PASS phone EPUB/PDF: fullscreen, controls, no overlap, size, dark/light, offline long-press dictionary, tap does not lookup, edge turn, swipe, exact resume');
 }finally{await browser.close();server?.kill();}

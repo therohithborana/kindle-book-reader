@@ -70,13 +70,26 @@ export function wordFromSelection(win) {
   return s ? s.toString().trim() : '';
 }
 
+// Word lookup routes: double-click with a mouse, press-and-hold (long-press)
+// with touch. A single tap never looks a word up, so taps can drive the
+// reading controls and page turns without firing the dictionary.
+let longPressAt = 0;
+// True briefly after a long-press lookup fired, so the reading-gesture
+// handler can ignore that press's release instead of toggling controls.
+export function consumedByLongPress() { return Date.now() - longPressAt < 800; }
+
 // Read the word at the pointer, including inside an EPUB's own document.
-// Mobile browsers often do not select text on double-tap, so selection alone
-// is not enough. A long-press selection is supported as a second touch route.
+// Touch long-press uses the point directly (mobile browsers often do not
+// select text on their own); a native long-press selection stays as a
+// second touch route through the selectionchange handler below.
 export function bindWordLookup(doc, win) {
   docs.add(doc);
-  let lastTap = null;
+  let press = null;
+  let pressTimer;
   let selectionTimer;
+  // Chrome also fires dblclick for a double TAP on touch screens; the pointer
+  // type of the press tells mouse double-clicks apart from those.
+  let lastPointerType = 'mouse';
   // Rect of the word in main-window coordinates (adds the EPUB iframe offset).
   function toMain(r) {
     const f = win.frameElement ? win.frameElement.getBoundingClientRect() : { left: 0, top: 0 };
@@ -104,15 +117,28 @@ export function bindWordLookup(doc, win) {
     return { word, rect };
   };
   const lookupAt = (x, y) => { const h = atPoint(x, y) || selected(); showMeaning(h.word, h.rect); };
-  const doubleClick = (e) => lookupAt(e.clientX, e.clientY);
-  const pointerUp = (e) => {
-    if (e.pointerType !== 'touch') return;
-    const now = Date.now();
-    if (lastTap && now - lastTap.time < 450 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 28) {
+  const doubleClick = (e) => { if (lastPointerType === 'touch') return; lookupAt(e.clientX, e.clientY); };
+  // Press and hold a word for its meaning. Moving the finger (scroll, swipe)
+  // or lifting it early cancels the lookup, so ordinary taps and page-turn
+  // gestures never trigger it.
+  const longPressDown = (e) => {
+    lastPointerType = e.pointerType || 'mouse';
+    if (e.pointerType !== 'touch' || !e.isPrimary) return;
+    if (e.target.closest?.('button, a')) return;
+    press = { x: e.clientX, y: e.clientY };
+    clearTimeout(pressTimer);
+    pressTimer = setTimeout(() => {
+      press = null;
+      longPressAt = Date.now();
       lookupAt(e.clientX, e.clientY);
-      lastTap = null;
-    } else lastTap = { time: now, x: e.clientX, y: e.clientY };
+    }, 500);
   };
+  const longPressMove = (e) => {
+    if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) { clearTimeout(pressTimer); press = null; }
+  };
+  const longPressEnd = () => { clearTimeout(pressTimer); press = null; };
+  // Keep long-press on a phone from opening the native link/image menu.
+  const noMenu = (e) => { if (matchMedia('(max-width: 600px)').matches) e.preventDefault(); };
   const pointerDown = () => hidePopup();
   const selectionChange = () => {
     clearTimeout(selectionTimer);
@@ -122,13 +148,21 @@ export function bindWordLookup(doc, win) {
     }, 350);
   };
   doc.addEventListener('dblclick', doubleClick);
-  doc.addEventListener('pointerup', pointerUp);
+  doc.addEventListener('pointerdown', longPressDown);
+  doc.addEventListener('pointermove', longPressMove);
+  doc.addEventListener('pointerup', longPressEnd);
+  doc.addEventListener('pointercancel', longPressEnd);
+  doc.addEventListener('contextmenu', noMenu);
   doc.addEventListener('pointerdown', pointerDown, true);
   doc.addEventListener('selectionchange', selectionChange);
   return () => {
-    clearTimeout(selectionTimer); docs.delete(doc);
+    clearTimeout(selectionTimer); clearTimeout(pressTimer); docs.delete(doc);
     doc.removeEventListener('dblclick', doubleClick);
-    doc.removeEventListener('pointerup', pointerUp);
+    doc.removeEventListener('pointerdown', longPressDown);
+    doc.removeEventListener('pointermove', longPressMove);
+    doc.removeEventListener('pointerup', longPressEnd);
+    doc.removeEventListener('pointercancel', longPressEnd);
+    doc.removeEventListener('contextmenu', noMenu);
     doc.removeEventListener('pointerdown', pointerDown, true);
     doc.removeEventListener('selectionchange', selectionChange);
   };

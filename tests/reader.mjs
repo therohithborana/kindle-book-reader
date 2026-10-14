@@ -56,12 +56,15 @@ try{
   assert.match(await page.locator('#popBody').innerText(),/dictionary/i);
   await page.screenshot({path:`/tmp/${type}-offline-verified.png`});
   await page.mouse.click(3,400);
-  await page.touchscreen.tap(x,y);await page.touchscreen.tap(x,y);
+  const lpd=await context.newCDPSession(page);
+  await lpd.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:Math.round(x),y:Math.round(y)}]});
+  await page.waitForTimeout(650);
+  await lpd.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   await page.locator('#popBody').locator('ol').waitFor();
-  console.log(type, 'PASS double-touch lookup');
+  console.log(type, 'PASS long-press lookup');
   await context.setOffline(false);await page.locator('#back').click();
  }
  await page.reload();await page.waitForSelector('#books');assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'dark');
  assert.deepEqual(external,[]);assert.deepEqual(errors,[]);
- console.log('PASS: actual EPUB/PDF double-click, offline dictionary, no external dictionary calls, no page errors');
+ console.log('PASS: actual EPUB/PDF double-click, touch long-press, offline dictionary, no external dictionary calls, no page errors');
 }finally{await browser.close();server?.kill()}
