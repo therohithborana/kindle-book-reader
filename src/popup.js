@@ -21,7 +21,7 @@ window.addEventListener('resize', () => place());
 function place() {
   if (pop.hidden || !anchor) return;
   const vw = window.innerWidth, vh = window.innerHeight, m = 12;
-  const w = Math.min(340, vw - m * 2);
+  const w = Math.min(250, vw - m * 2);
   pop.style.width = w + 'px';
   const h = pop.offsetHeight;
   const cx = (anchor.left + anchor.right) / 2;
@@ -49,8 +49,14 @@ export async function showMeaning(word, rect) {
     const r = await lookup(word);
     if (current !== request || pop.hidden) return;
     if (!r || !r.meanings.length) body.innerHTML = `<h2>${esc(word)}</h2><p>This word is not in the bundled offline dictionary.</p>`;
-    else body.innerHTML = `<h2>${esc(r.word)} <small>${esc(r.phonetic)}</small></h2>` + r.meanings.map((m) =>
-      `<h3>${esc(m.pos)}</h3><ol>` + m.defs.slice(0, 3).map((d) => `<li>${esc(d.def)}${d.ex ? `<div class="ex">"${esc(d.ex)}"</div>` : ''}</li>`).join('') + '</ol>').join('');
+    else {
+      const definition = (d) => `<li>${esc(d.def)}${d.ex ? `<div class="ex">"${esc(d.ex)}"</div>` : ''}</li>`;
+      const first = r.meanings[0];
+      const rest = r.meanings.map((m, i) => ({ ...m, defs: i === 0 ? m.defs.slice(2) : m.defs })).filter((m) => m.defs.length);
+      body.innerHTML = `<h2>${esc(r.word)} <small>${esc(r.phonetic)}</small></h2><h3>${esc(first.pos)}</h3><ol>${first.defs.slice(0, 2).map(definition).join('')}</ol>` +
+        (rest.length ? `<details><summary>More meanings</summary>${rest.map((m) => `<h3>${esc(m.pos)}</h3><ol>${m.defs.slice(0, 3).map(definition).join('')}</ol>`).join('')}</details>` : '');
+      body.querySelector('details')?.addEventListener('toggle', place);
+    }
   } catch (e) {
     if (current !== request || pop.hidden) return;
     activeWord = '';
