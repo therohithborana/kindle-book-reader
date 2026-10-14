@@ -42,3 +42,19 @@ such as "the" and "of" that WordNet omits).
 
 `npm run test:e2e` builds and tests actual EPUB/PDF uploads, desktop double-click and offline lookup in Chromium.
 Set `TARGET=https://your-deployment` to test a deployed build.
+
+### Real-book spread regression
+
+`tests/spread.mjs` checks actual text rectangles on both sides of the gutter (and none crossing it), dark and light EPUB content colors, phone resizing, text sizing, EPUB CFI resume, and PDF page-pair resume. It uses real multi-chapter EPUB/PDF files, not the short dictionary fixture:
+
+```sh
+curl -fL https://www.gutenberg.org/ebooks/2554.epub3.images -o /tmp/crime.epub
+curl -fL https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf -o /tmp/paper.pdf
+npm run build
+node tests/server.mjs
+# In another shell (CHROME defaults to /usr/bin/google-chrome):
+EPUB_FIXTURE=/tmp/crime.epub PDF_FIXTURE=/tmp/paper.pdf node tests/spread.mjs
+# TARGET=https://kindle-book-reader-eight.vercel.app runs the same checks on production.
+```
+
+EPUB pagination takes priority over the publisher's spread metadata. The gutter appears only when epub.js is actually showing two columns. Content backgrounds and text colors are set inside every EPUB document, including new chapters and theme changes, so publisher white backgrounds cannot wash out dark-mode text. Book images are kept as images; image colors are not inverted.

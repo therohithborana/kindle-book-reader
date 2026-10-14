@@ -12,7 +12,7 @@ try{
  await page.waitForFunction(()=>navigator.serviceWorker.controller,{timeout:60000});
  for(const type of ['epub','pdf']){
   await page.locator('#file').setInputFiles(new URL(`fixtures/test.${type}`,import.meta.url).pathname);
-  await page.locator('.card').first().click();
+  await page.locator(`.card:has(.cover.${type})`).click();
   const text=type==='epub'?page.frameLocator('#view iframe').locator('p'):page.locator('.textLayer span').first();
   await text.waitFor();await text.dblclick({position:{x:15,y:5}});
   await page.locator('#popBody').locator('ol').waitFor();
@@ -37,6 +37,7 @@ try{
   await page.screenshot({path:`/tmp/${type}-dark-large.png`});
   await page.locator('#sizeDown').click();await page.locator('#sizeDown').click();
   await page.mouse.click(3,400);
+  if(type==='pdf')await page.waitForFunction(()=>[...document.querySelectorAll('.textLayer span')].some(n=>n.textContent.includes('dictionary')));
   // A fresh, not-yet-looked-up letter must be available offline.
   await context.setOffline(true);
   const target=type==='epub'?page.frames().find(f=>f!==page.mainFrame()):page.mainFrame();
