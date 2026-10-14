@@ -1,4 +1,5 @@
 import * as pdfjs from 'pdfjs-dist';
+import { bindReadingGestures, isPhone, setChrome } from './reading-ui.js';
 import { TextLayer } from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { onSettings, getSettings } from './settings.js';
@@ -25,10 +26,11 @@ export async function openPdf(book, container, els, onProgress) {
     const nums = two ? [page, page + 1].filter((n) => n <= pdf.numPages) : [page];
     const pages = await Promise.all(nums.map((n) => pdf.getPage(n)));
     if (my !== gen) return;
-    const W = container.clientWidth - 24, H = container.clientHeight - 24;
+    const W = container.clientWidth - (isPhone() ? 0 : 24), H = container.clientHeight - (isPhone() ? 0 : 24);
     const base = pages[0].getViewport({ scale: 1 });
     const fit = Math.min(W / (two ? 2 : 1) / base.width, H / base.height);
     const scale = Math.max(0.3, fit) * size / 100;
+    container.style.touchAction = size > 100 ? 'pan-x pan-y' : 'pan-y';
     const dpr = window.devicePixelRatio || 1;
     const built = pages.map((p) => {
       const vp = p.getViewport({ scale });
@@ -62,19 +64,13 @@ export async function openPdf(book, container, els, onProgress) {
   }
   const step = () => (spreadMode() ? 2 : 1);
   const go = (n) => { n = Math.max(1, Math.min(pdf.numPages, n)); if (n !== page) { page = n; render(); } };
-  els.prev.onclick = () => go(page - step());
-  els.next.onclick = () => go(page + step());
+  els.prev.onclick = () => { setChrome(false); go(page - step()); };
+  els.next.onclick = () => { setChrome(false); go(page + step()); };
   const stopSettings = onSettings(({ size: s }) => { if (s !== size) { size = s; render(); } });
   let rt; const ro = new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(render, 150); }); ro.observe(container);
   const key = (e) => { if (e.key === 'ArrowLeft') els.prev.onclick(); if (e.key === 'ArrowRight') els.next.onclick(); };
   document.addEventListener('keyup', key);
-  // Swipe to turn pages (only when the page is not zoomed past the screen).
-  let sx = 0, sy = 0, t0 = 0;
-  const ts = (e) => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; t0 = Date.now(); };
-  const te = (e) => { const t = e.changedTouches[0]; const dx = t.clientX - sx, dy = t.clientY - sy;
-    if (Date.now() - t0 < 600 && Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.6) (dx < 0 ? els.next.onclick() : els.prev.onclick()); };
-  container.addEventListener('touchstart', ts, { passive: true });
-  container.addEventListener('touchend', te, { passive: true });
+  const stopGestures = bindReadingGestures(document, window, () => els.prev.onclick(), () => els.next.onclick(), container);
   await render();
-  return () => { clearTimeout(rt); ro.disconnect(); stopSettings(); document.removeEventListener('keyup', key); container.removeEventListener('touchstart', ts); container.removeEventListener('touchend', te); unbind(); pdf.destroy(); };
+  return () => { clearTimeout(rt); ro.disconnect(); stopSettings(); document.removeEventListener('keyup', key); stopGestures(); unbind(); pdf.destroy(); };
 }

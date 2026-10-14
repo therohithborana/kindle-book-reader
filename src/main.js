@@ -1,4 +1,5 @@
 import './style.css';
+import { beginReading, setChrome } from './reading-ui.js';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import { initSettings } from './settings.js';
 import { putBook, getBook, allBooks, deleteBook } from './db.js';
@@ -66,7 +67,7 @@ async function openBook(id) {
   const saved = getProgress(id);
   if (saved && saved.location) { book.location = saved.location; book.percent = saved.percent ?? book.percent; }
   setLastOpen(id); setProgress(id, {});
-  $('library').hidden = true; $('reader').hidden = false;
+  $('library').hidden = true; $('reader').hidden = false; beginReading();
   $('title').textContent = book.title;
   const view = $('view'); view.innerHTML = '';
   view.className = book.type;
@@ -78,7 +79,7 @@ async function openBook(id) {
 $('back').onclick = () => {
   if (cleanup) cleanup(); cleanup = null;
   $('popup').hidden = true; setLastOpen(null);
-  $('reader').hidden = true; $('library').hidden = false;
+  $('reader').hidden = true; $('library').hidden = false; setChrome(true);
   $('view').innerHTML = '';
   renderLibrary();
 };

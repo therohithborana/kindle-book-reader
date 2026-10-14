@@ -58,3 +58,17 @@ EPUB_FIXTURE=/tmp/crime.epub PDF_FIXTURE=/tmp/paper.pdf node tests/spread.mjs
 ```
 
 EPUB pagination takes priority over the publisher's spread metadata. The gutter appears only when epub.js is actually showing two columns. Content backgrounds and text colors are set inside every EPUB document, including new chapters and theme changes, so publisher white backgrounds cannot wash out dark-mode text. Book images are kept as images; image colors are not inverted.
+
+### Phone reading
+
+On phones up to 600px wide, books open in an immersive single-page view.
+Tap the middle of the page to show or hide the library, size, theme, and progress
+controls. Swipe left/right or tap either edge to turn pages. Double-tap a word
+for the offline dictionary. A single tap waits briefly so it does not interfere
+with double-tap lookup. The controls reserve their own space while visible,
+rather than covering the text. PDFs keep the original printed page layout;
+use the size buttons to zoom, then scroll a zoomed page.
+
+Mobile regression check with a real multi-chapter EPUB and PDF:
+`EPUB_FIXTURE=/path/book.epub PDF_FIXTURE=/path/book.pdf node tests/mobile.mjs`
+Set `TARGET` to check a deployment and `OUTPUT` to choose the screenshot prefix.
